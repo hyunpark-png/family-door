@@ -4,70 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>우리집 현관지기</title>
-    <!-- Tailwind CSS (디자인 라이브러리) -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col items-center p-4">
 
     <main class="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 mt-4">
-        <!-- 헤더 영역 -->
         <header class="text-center mb-6 border-b border-slate-100 pb-4">
-            <h1 class="text-2xl font-bold text-slate-950 flex justify-center items-center gap-2">
-                🏠 우리집 현관지기
-            </h1>
+            <h1 class="text-2xl font-bold text-slate-950 flex justify-center items-center gap-2">🏠 우리집 현관지기</h1>
             <p class="text-sm text-slate-500 mt-1">실시간 현관문 잠금 안내 서비스</p>
         </header>
 
-        <!-- [핵심 기능] 상단 지능형 알림창 -->
         <div id="lock-warning" class="mb-6 p-4 rounded-xl text-center font-semibold transition-all duration-300">
-            데이터를 계산 중입니다...
+            데이터를 불러오는 중...
         </div>
 
-        <!-- 가족 리스트 영역 -->
-        <div id="family-list" class="space-y-4">
-            <!-- 자바스크립트로 카드가 생성됩니다 -->
-        </div>
+        <div id="family-list" class="space-y-4"></div>
     </main>
 
     <script>
-        // 1. 요청하신 성인 가족 7명 명단 및 초기 데이터 구조
-        // (실제 서버 연동 시에는 데이터베이스에서 이 값을 실시간으로 가져오고 저장하게 됩니다)
-        let familyData = [
-            { id: 1, name: '영호', status: 'home', memo: '', last_updated: new Date() },
-            { id: 2, name: '정임', status: 'home', memo: '', last_updated: new Date() },
-            { id: 3, name: '민정', status: 'out', memo: '마트 다녀옴', last_updated: new Date() },
-            { id: 4, name: '현호', status: 'home', memo: '', last_updated: new Date() },
-            { id: 5, name: '지은', status: 'home', memo: '', last_updated: new Date() },
-            { id: 6, name: '현', status: 'home', memo: '', last_updated: new Date() },
-            { id: 7, name: '영민', status: 'trip', memo: '부산 출장 (~금)', last_updated: new Date() }
-        ];
+        // ⚡ 질문자님의 Supabase 정보가 정확히 반영된 열쇠 구역입니다!
+        const SUPABASE_URL = 'https://vxpumumartgzzzuefgwx.supabase.co'; 
+        // ⚠️ 아래 '여기에_아까_복사한_긴_Publishable_key_입력' 자리에 
+        // sb_publishable_Xilja7NtXXrLZnJ8zVnzjw_fEdNJOCa
+        const SUPABASE_KEY = 'sb_publishable_Xilja7NtXXrLZnJ8zVnzjw_fEdNJOCa';
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 2. 화면을 그리는 함수 (상단 알림창 로직 포함)
+        let familyData = [];
+
+        // 서버에서 데이터 가져오기
+        async function fetchFamilyStatus() {
+            const { data, error } = await supabase.from('family_status').select('*').order('id');
+            if (!error && data) {
+                familyData = data;
+                renderApplication();
+            }
+        }
+
+        // 화면 그리기 및 로직
         function renderApplication() {
             const listContainer = document.getElementById('family-list');
             listContainer.innerHTML = '';
 
-            // 현재 밖에 있는 사람(out)의 수와, 마지막으로 'home'으로 들어온 사람을 찾기 위한 변수
             let outCount = 0;
             let lastHomeMember = null;
             let maxTime = 0;
 
             familyData.forEach(member => {
-                // 외출 중인 사람 카운트
-                if (member.status === 'out') {
-                    outCount++;
-                }
+                if (member.status === 'out') outCount++;
                 
-                // 들어온(home) 사람 중 가장 최근에 들어온(last_updated가 가장 큰) 사람 찾기
-                if (member.status === 'home' && member.last_updated) {
-                    const timeValue = new Date(member.last_updated).getTime();
+                if (member.status === 'home' && member.created_at) {
+                    const timeValue = new Date(member.created_at).getTime();
                     if (timeValue > maxTime) {
                         maxTime = timeValue;
                         lastHomeMember = member;
                     }
                 }
 
-                // 카드 엘리먼트 생성
                 const card = document.createElement('div');
                 card.className = `flex flex-col p-4 rounded-xl border transition-all ${
                     member.status === 'home' ? 'bg-emerald-50/40 border-emerald-200' : 
@@ -77,16 +71,14 @@
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-lg text-slate-800">${member.name}</span>
-                        <!-- 상태 변경 버튼 그룹 -->
                         <div class="flex gap-1 bg-slate-100 p-1 rounded-lg">
                             <button onclick="updateStatus(${member.id}, 'home')" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all ${member.status === 'home' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}">들어옴</button>
                             <button onclick="updateStatus(${member.id}, 'out')" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all ${member.status === 'out' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}">나감</button>
                             <button onclick="updateStatus(${member.id}, 'trip')" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all ${member.status === 'trip' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}">외박</button>
                         </div>
                     </div>
-                    <!-- 메모 영역 -->
                     <div class="mt-3 flex gap-2 items-center">
-                        <input type="text" id="memo-${member.id}" value="${member.memo}" placeholder="여기에 메모 입력..." 
+                        <input type="text" id="memo-${member.id}" value="${member.memo || ''}" placeholder="여기에 메모 입력..." 
                             class="w-full text-xs bg-slate-50 border border-slate-200 rounded-md px-2 py-1 focus:outline-none focus:border-slate-400 text-slate-600"
                             onchange="updateMemo(${member.id}, this.value)">
                     </div>
@@ -94,18 +86,13 @@
                 listContainer.appendChild(card);
             });
 
-            // 3. [핵심] 질문자님이 요청하신 현관문 안내 상단 전광판 로직
             const warningBox = document.getElementById('lock-warning');
-            
             if (outCount > 0) {
-                // 누군가 밖에 한명이라도 있는 경우 (산책 나간 경우 포함) -> 몇 명 남았는지 표시
                 warningBox.className = "mb-6 p-4 rounded-xl text-center font-semibold bg-blue-50 text-blue-700 border border-blue-100";
                 warningBox.innerHTML = `현재 밖에 <span class="text-xl font-bold">${outCount}</span>명 있어요.`;
             } else {
-                // 밖에 아무도 없는 경우 (모두 복귀 혹은 외박)
                 if (lastHomeMember) {
-                    // 가장 마지막에 '들어옴'을 누른 사람의 이름을 노출하여 문 잠금 책임 소재 명확화!
-                    warningBox.className = "mb-6 p-4 rounded-xl text-center font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100 animate-pulse";
+                    warningBox.className = "mb-6 p-4 rounded-xl text-center font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100";
                     warningBox.innerHTML = `🎉 모두 복귀 완료! <br><span class="text-xl font-bold">[${lastHomeMember.name}]</span>님이 문을 잠가주세요!`;
                 } else {
                     warningBox.className = "mb-6 p-4 rounded-xl text-center font-semibold bg-slate-100 text-slate-600 border border-slate-200";
@@ -114,28 +101,25 @@
             }
         }
 
-        // 상태 업데이트 함수 (버튼 클릭 시)
-        function updateStatus(id, newStatus) {
-            const index = familyData.findIndex(m => m.id === id);
-            if (index !== -1) {
-                familyData[index].status = newStatus;
-                // '들어옴' 상태로 바뀔 때만 마지막 변경 시간을 현재로 기록 (정확한 마지막 귀가자 추적용)
-                familyData[index].last_updated = new Date();
-                renderApplication();
-            }
+        // 서버에 실시간 상태 업데이트 후 저장
+        async function updateStatus(id, newStatus) {
+            await supabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
         }
 
-        // 메모 업데이트 함수 (엔터 혹은 입력 칸 클릭 해제 시)
-        function updateMemo(id, newMemo) {
-            const index = familyData.findIndex(m => m.id === id);
-            if (index !== -1) {
-                familyData[index].memo = newMemo;
-                renderApplication();
-            }
+        // 서버에 실시간 메모 업데이트 후 저장
+        async function updateMemo(id, newMemo) {
+            await supabase.from('family_status').update({ memo: newMemo }).eq('id', id);
         }
 
-        // 초기 화면 실행
-        renderApplication();
+        // 대가족 필수: 다른 사람이 바꾸면 내 폰 화면도 실시간 자동 연동 시키는 코드
+        supabase.channel('custom-all-channel')
+        .on('postgres_changes', { event: '*', filter: 'table=eq.family_status' }, () => {
+            fetchFamilyStatus();
+        })
+        .subscribe();
+
+        // 앱 시작 시 데이터 로드
+        fetchFamilyStatus();
     </script>
 </body>
 </html>
