@@ -98,29 +98,30 @@
             }
         }
 
-        // [중요 수정] 버튼 클릭 후 서버 저장이 끝나면 화면을 즉시 새로 불러옵니다!
+        // 버튼 클릭 시 서버 데이터 업데이트
         async function updateStatus(id, newStatus) {
-            const { error } = await mySupabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
-            if (!error) {
-                await fetchFamilyStatus();
-            } else {
-                console.error("업데이트 실패:", error);
-            }
+            await mySupabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
         }
 
-        // [중요 수정] 메모 저장이 끝나면 화면을 즉시 새로 불러옵니다!
+        // 메모 실시간 업데이트
         async function updateMemo(id, newMemo) {
-            const { error } = await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
-            if (!error) {
-                await fetchFamilyStatus();
-            }
+            await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
         }
 
-        // 실시간 채널 연동
-        mySupabase.channel('custom-all-channel')
-        .on('postgres_changes', { event: '*', filter: 'table=eq.family_status' }, () => {
-            fetchFamilyStatus();
-        })
+        // ⚡ [최신 규격 교정] 실시간 주파수를 빈틈없이 잡아내는 마스터 수신 코드입니다.
+        mySupabase.channel('schema-db-changes')
+        .on(
+            'postgres_changes',
+            {
+                event: '*',
+                schema: 'public',
+                table: 'family_status'
+            },
+            (payload) => {
+                // 서버에서 변화가 감지되면 즉시 데이터를 새로 가져와 화면을 바꿉니다.
+                fetchFamilyStatus();
+            }
+        )
         .subscribe();
 
         // 앱 시작 시 데이터 로드
