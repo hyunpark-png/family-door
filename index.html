@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>우리집 현관지기</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col items-center p-4">
 
@@ -26,8 +26,8 @@
         const SUPABASE_URL = 'https://vxpumumartgzzzuefgwx.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_Xilja7NtXXrLZnJ8zVnzjw_fEdNJOCa';
         
-        // 연결 창구 이름을 mySupabase로 통일합니다.
-        const mySupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // 중복 선언과 정의 에러를 완벽하게 차단하기 위해 윈도우 객체에서 안전하게 가져옵니다.
+        const mySupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let familyData = [];
 
@@ -99,17 +99,17 @@
             }
         }
 
-        // [수정 완료] 버튼 클릭 시 상태 업데이트 함수도 mySupabase를 바라보게 고쳤습니다!
+        // 버튼 누르면 수파베이스 데이터베이스의 상태를 실시간으로 업데이트하는 함수
         async function updateStatus(id, newStatus) {
             await mySupabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
         }
 
-        // [수정 완료] 메모 업데이트 함수도 mySupabase로 고쳤습니다!
+        // 메모를 적으면 실시간으로 업데이트하는 함수
         async function updateMemo(id, newMemo) {
             await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
         }
 
-        // 실시간 채널 연동
+        // 실시간 연동 채널 코드
         mySupabase.channel('custom-all-channel')
         .on('postgres_changes', { event: '*', filter: 'table=eq.family_status' }, () => {
             fetchFamilyStatus();
