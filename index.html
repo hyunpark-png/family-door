@@ -26,7 +26,6 @@
         const SUPABASE_URL = 'https://vxpumumartgzzzuefgwx.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_Xilja7NtXXrLZnJ8zVnzjw_fEdNJOCa';
         
-        // 중복 선언과 정의 에러를 완벽하게 차단하기 위해 윈도우 객체에서 안전하게 가져옵니다.
         const mySupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let familyData = [];
@@ -99,17 +98,25 @@
             }
         }
 
-        // 버튼 누르면 수파베이스 데이터베이스의 상태를 실시간으로 업데이트하는 함수
+        // [중요 수정] 버튼 클릭 후 서버 저장이 끝나면 화면을 즉시 새로 불러옵니다!
         async function updateStatus(id, newStatus) {
-            await mySupabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
+            const { error } = await mySupabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
+            if (!error) {
+                await fetchFamilyStatus();
+            } else {
+                console.error("업데이트 실패:", error);
+            }
         }
 
-        // 메모를 적으면 실시간으로 업데이트하는 함수
+        // [중요 수정] 메모 저장이 끝나면 화면을 즉시 새로 불러옵니다!
         async function updateMemo(id, newMemo) {
-            await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
+            const { error } = await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
+            if (!error) {
+                await fetchFamilyStatus();
+            }
         }
 
-        // 실시간 연동 채널 코드
+        // 실시간 채널 연동
         mySupabase.channel('custom-all-channel')
         .on('postgres_changes', { event: '*', filter: 'table=eq.family_status' }, () => {
             fetchFamilyStatus();
