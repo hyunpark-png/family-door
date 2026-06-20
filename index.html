@@ -23,19 +23,18 @@
     </main>
 
     <script>
-        // ⚡ 질문자님의 Supabase 정보가 정확히 반영된 열쇠 구역입니다!
+        // ⚡ 중복 선언 방지를 위해 변수명을 mySupabase로 명확히 분리했습니다!
         const SUPABASE_URL = 'https://vxpumumartgzzzuefgwx.supabase.co'; 
-        // ⚠️ 아래 '여기에_아까_복사한_긴_Publishable_key_입력' 자리에 
-        // sb_publishable_Xilja7NtXXrLZnJ8zVnzjw_fEdNJOCa
         const SUPABASE_KEY = 'sb_publishable_Xilja7NtXXrLZnJ8zVnzjw_fEdNJOCa';
         
-        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // 외부 엔진(Supabase)을 호출하여 나만의 창구(mySupabase)를 개설합니다.
+        const mySupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let familyData = [];
 
         // 서버에서 데이터 가져오기
         async function fetchFamilyStatus() {
-            const { data, error } = await supabase.from('family_status').select('*').order('id');
+            const { data, error } = await mySupabase.from('family_status').select('*').order('id');
             if (!error && data) {
                 familyData = data;
                 renderApplication();
@@ -103,16 +102,16 @@
 
         // 서버에 실시간 상태 업데이트 후 저장
         async function updateStatus(id, newStatus) {
-            await supabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
+            await mySupabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
         }
 
         // 서버에 실시간 메모 업데이트 후 저장
         async function updateMemo(id, newMemo) {
-            await supabase.from('family_status').update({ memo: newMemo }).eq('id', id);
+            await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
         }
 
-        // 대가족 필수: 다른 사람이 바꾸면 내 폰 화면도 실시간 자동 연동 시키는 코드
-        supabase.channel('custom-all-channel')
+        // 실시간 채널 연동
+        mySupabase.channel('custom-all-channel')
         .on('postgres_changes', { event: '*', filter: 'table=eq.family_status' }, () => {
             fetchFamilyStatus();
         })
