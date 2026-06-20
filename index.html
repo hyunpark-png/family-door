@@ -23,12 +23,11 @@
     </main>
 
     <script>
-        // ⚡ 중복 선언 방지를 위해 변수명을 mySupabase로 명확히 분리했습니다!
         const SUPABASE_URL = 'https://vxpumumartgzzzuefgwx.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_Xilja7NtXXrLZnJ8zVnzjw_fEdNJOCa';
         
-        // 외부 엔진(Supabase)을 호출하여 나만의 창구(mySupabase)를 개설합니다.
-        const mySupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // 연결 창구 이름을 mySupabase로 통일합니다.
+        const mySupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let familyData = [];
 
@@ -100,12 +99,12 @@
             }
         }
 
-        // 서버에 실시간 상태 업데이트 후 저장
+        // [수정 완료] 버튼 클릭 시 상태 업데이트 함수도 mySupabase를 바라보게 고쳤습니다!
         async function updateStatus(id, newStatus) {
             await mySupabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
         }
 
-        // 서버에 실시간 메모 업데이트 후 저장
+        // [수정 완료] 메모 업데이트 함수도 mySupabase로 고쳤습니다!
         async function updateMemo(id, newMemo) {
             await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
         }
