@@ -28,7 +28,7 @@
         const SUPABASE_KEY = 'sb_publishable_Xilja7NtXXrLZnJ8zVnzjw_fEdNJOCa';
         
         // 외부 엔진(Supabase)을 호출하여 나만의 창구(mySupabase)를 개설합니다.
-        const mySupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const mySupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let familyData = [];
 
