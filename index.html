@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>우리집 현관지기</title>
+    
+    <link rel="apple-touch-icon" href="https://img.icons8.com/fluent/192/home.png">
+    <link rel="shortcut icon" href="https://img.icons8.com/fluent/192/home.png">
+    
+    <meta name="theme-color" content="#f8fafc">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#f8fafc">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
@@ -98,17 +105,17 @@
             }
         }
 
-        // 버튼 클릭 시 서버 데이터 업데이트
+        // 상태 업데이트
         async function updateStatus(id, newStatus) {
             await mySupabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
         }
 
-        // 메모 실시간 업데이트
+        // 메모 업데이트
         async function updateMemo(id, newMemo) {
             await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
         }
 
-        // ⚡ [최신 규격 교정] 실시간 주파수를 빈틈없이 잡아내는 마스터 수신 코드입니다.
+        // 실시간 연동 마스터 수신 채널
         mySupabase.channel('schema-db-changes')
         .on(
             'postgres_changes',
@@ -118,7 +125,6 @@
                 table: 'family_status'
             },
             (payload) => {
-                // 서버에서 변화가 감지되면 즉시 데이터를 새로 가져와 화면을 바꿉니다.
                 fetchFamilyStatus();
             }
         )
