@@ -14,8 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        /* 게임 캔버스 스타일 */
-        canvas { background: #1e293b; display: block; margin: 0 auto; border-radius: 12px; }
+        canvas { background: linear-gradient(to bottom, #0f172a, #1e293b); display: block; margin: 0 auto; border-radius: 12px; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col items-center p-4 pb-12">
@@ -32,6 +31,7 @@
                 데이터를 불러오는 중...
             </div>
             <div id="family-list" class="space-y-4"></div>
+            <input type="file" id="profile-file-input" accept="image/*" class="hidden" onchange="uploadProfileImage(this)">
         </section>
 
         <hr class="border-slate-100">
@@ -42,19 +42,22 @@
                 <span class="text-xs font-semibold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">최대 16장 한정</span>
             </div>
             
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
-                <div class="flex gap-2">
-                    <input type="text" id="gallery-user" placeholder="이름" class="w-1/3 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-slate-400">
-                    <input type="text" id="gallery-url" placeholder="이미지 주소 (https://...)" class="w-2/3 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-slate-400">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="gallery-user" placeholder="올리는 사람 이름" class="p-2.5 border border-slate-300 rounded-lg bg-white font-medium focus:outline-none focus:border-indigo-500">
+                    <label class="flex items-center justify-center bg-white border border-slate-300 text-slate-700 font-bold py-2 px-3 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors text-center">
+                        📁 사진 선택하기
+                        <input type="file" id="gallery-file" accept="image/*" class="hidden" onchange="displayFileName(this)">
+                    </label>
                 </div>
+                <div id="file-name-display" class="text-[11px] text-indigo-600 font-semibold px-1 hidden truncate">선택된 사진: 없음</div>
                 <div class="flex gap-2">
-                    <input type="text" id="gallery-memo" placeholder="사진 코멘트나 하고 싶은 말 입력" class="w-full p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-slate-400">
-                    <button onclick="uploadPhoto()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 rounded-md shrink-0 transition-colors">등록</button>
+                    <input type="text" id="gallery-memo" placeholder="사진에 들어갈 설명을 적어주세요." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-indigo-500">
+                    <button onclick="uploadPhoto()" id="upload-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 rounded-lg shrink-0 transition-colors">등록 완료</button>
                 </div>
             </div>
 
-            <div id="photo-grid" class="grid grid-cols-2 gap-3">
-                </div>
+            <div id="photo-grid" class="grid grid-cols-4 gap-2"></div>
         </section>
 
         <hr class="border-slate-100">
@@ -62,11 +65,11 @@
         <section id="section-game" class="space-y-4">
             <div class="border-b border-slate-100 pb-2">
                 <h2 class="text-lg font-bold text-slate-900 flex items-center gap-1.5">🎮 우리집 미니 오락실</h2>
-                <p class="text-xs text-slate-500 mt-0.5">하늘에서 떨어지는 비(똥)를 피하세요! (졸라맨 게임)</p>
+                <p class="text-xs text-slate-500 mt-0.5">하늘에서 우수수 떨어지는 거대한 돌을 피하세요!</p>
             </div>
 
             <div class="bg-slate-950 text-white p-3 rounded-xl shadow-inner">
-                <h3 class="text-xs font-bold text-amber-400 mb-2 text-center flex justify-center items-center gap-1">🏆 오늘의 실시간 TOP 3</h3>
+                <h3 class="text-xs font-bold text-amber-400 mb-2 text-center flex justify-center items-center gap-1">🏆 오늘의 돌 피하기 TOP 3</h3>
                 <ol id="game-ranking" class="text-xs space-y-1.5 text-center font-medium">
                     <li class="text-slate-500">랭킹 데이터를 불러오고 있습니다...</li>
                 </ol>
@@ -76,7 +79,7 @@
                 <canvas id="gameCanvas" width="320" height="240"></canvas>
                 
                 <div id="game-start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/85 transition-opacity duration-300">
-                    <input type="text" id="player-name" placeholder="닉네임 입력 (ex. 아빠, 딸)" class="mb-3 p-2 rounded-lg text-sm text-slate-800 text-center w-44 font-bold border-2 border-slate-300 focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="player-name" placeholder="닉네임 입력 (ex. 엄마, 아들)" class="mb-3 p-2 rounded-lg text-sm text-slate-800 text-center w-44 font-bold border-2 border-slate-300 focus:outline-none focus:border-indigo-500">
                     <button onclick="startGame()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm shadow-md transform active:scale-95 transition-all">게임 시작 🚀</button>
                 </div>
             </div>
@@ -89,6 +92,15 @@
 
     </main>
 
+    <div id="photo-modal" class="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" onclick="closePhotoModal()">
+        <img id="modal-img" src="" alt="확대사진" class="max-w-full max-h-[70vh] rounded-xl object-contain shadow-2xl">
+        <div class="text-white text-center mt-4 space-y-1 max-w-sm px-4">
+            <p id="modal-memo" class="font-bold text-base break-words"></p>
+            <p id="modal-uploader" class="text-xs text-slate-400"></p>
+        </div>
+        <button class="absolute top-4 right-4 text-white bg-white/20 hover:bg-white/30 text-xl font-bold w-10 h-10 rounded-full flex items-center justify-center">✕</button>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://vxpumumartgzzzuefgwx.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_Xilja7NtXXrLZnJ8zVnzjw_fEdNJOCa';
@@ -97,12 +109,11 @@
 
         let familyData = [];
         let photoData = [];
+        let currentTargetMemberId = null;
 
         // ==========================================
-        // [백엔드 통신 및 데이터 로드 로직]
+        // [데이터 동기화 및 패치 로직]
         // ==========================================
-        
-        // 1. 가족 출입 데이터 가져오기
         async function fetchFamilyStatus() {
             const { data, error } = await mySupabase.from('family_status').select('*').order('id');
             if (!error && data) {
@@ -111,15 +122,14 @@
             }
         }
 
-        // 2. 오늘의 사진첩 데이터 가져오기 (매일 리셋 필터 포함)
         async function fetchPhotos() {
-            const todayStr = new Date().toISOString().split('T')[0]; // 오늘 날짜 문자열 추출
+            const todayStr = new Date().toISOString().split('T')[0];
             const { data, error } = await mySupabase
                 .from('family_gallery')
                 .select('*')
-                .gte('created_at', todayStr + 'T00:00:00') // 오늘 00시 이후 데이터만
+                .gte('created_at', todayStr + 'T00:00:00')
                 .order('id', { ascending: false })
-                .limit(16); // 기획안 준수: 하루 선착순 16장 제한
+                .limit(16);
 
             if (!error && data) {
                 photoData = data;
@@ -127,13 +137,12 @@
             }
         }
 
-        // 3. 미니게임 실시간 TOP 3 랭킹 가져오기
         async function fetchRankings() {
             const todayStr = new Date().toISOString().split('T')[0];
             const { data, error } = await mySupabase
                 .from('game_ranking')
                 .select('*')
-                .gte('created_at', todayStr + 'T00:00:00') // 당일 생성된 점수 기록만 필터링
+                .gte('created_at', todayStr + 'T00:00:00')
                 .order('score', { ascending: false })
                 .limit(3);
 
@@ -141,7 +150,7 @@
                 const rankingList = document.getElementById('game-ranking');
                 rankingList.innerHTML = '';
                 if(data.length === 0) {
-                    rankingList.innerHTML = `<li class="text-slate-500 py-1">오늘의 첫 기록을 남겨보세요!</li>`;
+                    rankingList.innerHTML = `<li class="text-slate-500 py-1">오늘의 첫 돌 피하기 장인에 도전하세요!</li>`;
                     return;
                 }
                 data.forEach((rank, index) => {
@@ -152,10 +161,8 @@
         }
 
         // ==========================================
-        // [UI 렌더링 함수들]
+        // [UI 화면 그리기 함수]
         // ==========================================
-        
-        // 가족 목록 화면 그리기 (원본 코드 구조 계승 및 프로필 이미지 추가)
         function renderApplication() {
             const listContainer = document.getElementById('family-list');
             listContainer.innerHTML = '';
@@ -175,8 +182,7 @@
                     }
                 }
 
-                // 이름 기반 귀여운 자동 아바타 API 연동 (프로필 이미지 요구사항 충족)
-                const profileImg = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(member.name)}`;
+                const profileImg = member.profile_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(member.name)}`;
 
                 const card = document.createElement('div');
                 card.className = `flex flex-col p-4 rounded-xl border transition-all ${
@@ -187,7 +193,10 @@
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2.5">
-                            <img src="${profileImg}" alt="프로필" class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 object-cover">
+                            <div class="relative group cursor-pointer" onclick="triggerProfileUpload(${member.id})">
+                                <img src="${profileImg}" alt="프로필" class="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 object-cover">
+                                <span class="absolute -bottom-1 -right-1 bg-slate-800 text-white text-[9px] px-1 py-0.5 rounded-md font-bold scale-90">⚙️ 변경</span>
+                            </div>
                             <span class="font-bold text-lg text-slate-800">${member.name}</span>
                         </div>
                         <div class="flex gap-1 bg-slate-100 p-1 rounded-lg">
@@ -220,77 +229,136 @@
             }
         }
 
-        // 사진첩 화면 그리기
+        // 변경 포인트: 가로 4장의 컴팩트한 바둑판형 타일 구조 렌더링
         function renderGallery() {
             const grid = document.getElementById('photo-grid');
             grid.innerHTML = '';
 
             if(photoData.length === 0) {
-                grid.innerHTML = `<p class="col-span-2 text-center text-xs text-slate-400 py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">오늘 업로드된 사진이 없습니다.<br>첫 일상을 공유해보세요!</p>`;
+                grid.innerHTML = `<p class="col-span-4 text-center text-xs text-slate-400 py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">오늘 사진이 없습니다.<br>폰에서 4장씩 채워보세요!</p>`;
                 return;
             }
 
             photoData.forEach(photo => {
                 const item = document.createElement('div');
-                item.className = "relative bg-slate-100 rounded-xl overflow-hidden shadow-sm aspect-square border border-slate-200";
+                // aspect-square(정사각형) 유지, 클릭 시 확대 모달 실행 터치 영역 지정
+                item.className = "relative bg-slate-100 rounded-lg overflow-hidden shadow-sm aspect-square border border-slate-200 cursor-pointer hover:scale-95 transition-transform";
+                const fullImageUrl = mySupabase.storage.from('gallery').getPublicUrl(photo.url).data.publicUrl;
+
+                // 미니 사이즈 화면이므로 텍스트는 간결하게 그라데이션 위에 작성자 이름만 우선 표기
                 item.innerHTML = `
-                    <img src="${photo.url}" alt="가족일상" class="w-full h-full object-cover">
-                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-2 text-white">
-                        <p class="text-[11px] font-bold truncate">${photo.memo || '일상 공유'}</p>
-                        <p class="text-[9px] text-slate-300 mt-0.5 font-medium">👤 ${photo.uploader}</p>
+                    <img src="${fullImageUrl}" alt="가족일상" class="w-full h-full object-cover" onclick="openPhotoModal('${fullImageUrl}', '${photo.memo.replace(/'/g, "\\'")}', '${photo.uploader}')">
+                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-1 pointer-events-none">
+                        <p class="text-[9px] text-white text-center font-bold truncate">👤 ${photo.uploader}</p>
                     </div>
                 `;
                 grid.appendChild(item);
             });
         }
 
-        // ==========================================
-        // [C.U.D 데이터 가공 및 액션 제어]
-        // ==========================================
-
-        // 출입 상태 업데이트 (원본 기능)
-        async function updateStatus(id, newStatus) {
-            await mySupabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
+        // 확대 팝업 제어 로직
+        function openPhotoModal(url, memo, uploader) {
+            document.getElementById('modal-img').src = url;
+            document.getElementById('modal-memo').innerText = memo || '말머리 없음';
+            document.getElementById('modal-uploader').innerText = `👤 공유자: ${uploader}`;
+            
+            const modal = document.getElementById('photo-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
         }
 
-        // 한줄 메모 업데이트 (원본 기능)
-        async function updateMemo(id, newMemo) {
-            await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
+        function closePhotoModal() {
+            const modal = document.getElementById('photo-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
         }
 
-        // 데일리 사진 한마디 등록 액션
-        async function uploadPhoto() {
-            const uploader = document.getElementById('gallery-user').value.trim();
-            const url = document.getElementById('gallery-url').value.trim();
-            const memo = document.getElementById('gallery-memo').value.trim();
-
-            if (!uploader || !url) return alert('작성자 이름과 이미지 링크를 꼭 입력해주세요.');
-            if (photoData.length >= 16) return alert('기획 한도 초과: 오늘은 이미 16장의 사진이 다 찼습니다! 내일 다시 공유해주세요.');
-
-            const { error } = await mySupabase.from('family_gallery').insert([{ uploader, url, memo, created_at: new Date() }]);
-            if(!error) {
-                document.getElementById('gallery-url').value = '';
-                document.getElementById('gallery-memo').value = '';
-                fetchPhotos();
-            } else {
-                alert('DB 테이블 생성을 확인해주세요.');
+        function displayFileName(input) {
+            const display = document.getElementById('file-name-display');
+            if(input.files && input.files[0]) {
+                display.innerText = `선택된 사진: ${input.files[0].name}`;
+                display.classList.remove('hidden');
             }
         }
 
         // ==========================================
-        // [미니게임 엔진: HTML5 Canvas 기반]
+        // [데이터 쓰기 및 업로드 처리]
+        // ==========================================
+        async function updateStatus(id, newStatus) {
+            await mySupabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
+        }
+
+        async function updateMemo(id, newMemo) {
+            await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
+        }
+
+        function triggerProfileUpload(memberId) {
+            currentTargetMemberId = memberId;
+            document.getElementById('profile-file-input').click();
+        }
+
+        async function uploadProfileImage(input) {
+            if (!input.files || !input.files[0] || !currentTargetMemberId) return;
+            const file = input.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `profile_${currentTargetMemberId}_${Date.now()}.${fileExt}`;
+
+            const { error: uploadError } = await mySupabase.storage.from('gallery').upload(fileName, file);
+            if (uploadError) return alert('이미지 업로드 실패: ' + uploadError.message);
+
+            const publicUrl = mySupabase.storage.from('gallery').getPublicUrl(fileName).data.publicUrl;
+            await mySupabase.from('family_status').update({ profile_url: publicUrl }).eq('id', currentTargetMemberId);
+            
+            input.value = '';
+            fetchFamilyStatus();
+        }
+
+        async function uploadPhoto() {
+            const uploader = document.getElementById('gallery-user').value.trim();
+            const memo = document.getElementById('gallery-memo').value.trim();
+            const fileInput = document.getElementById('gallery-file');
+
+            if (!uploader) return alert('이름을 작성해주세요.');
+            if (!fileInput.files || !fileInput.files[0]) return alert('갤러리에서 공유할 사진을 골라주세요!');
+            if (photoData.length >= 16) return alert('오늘은 이미 16장의 사진이 다 찼습니다!');
+
+            const btn = document.getElementById('upload-btn');
+            btn.innerText = "업로드 중...";
+            btn.disabled = true;
+
+            const file = fileInput.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `daily_${Date.now()}.${fileExt}`;
+
+            const { error: storageError } = await mySupabase.storage.from('gallery').upload(fileName, file);
+            
+            if(!storageError) {
+                const { error: dbError } = await mySupabase.from('family_gallery').insert([{ uploader, url: fileName, memo, created_at: new Date() }]);
+                if(!dbError) {
+                    fileInput.value = '';
+                    document.getElementById('gallery-memo').value = '';
+                    document.getElementById('file-name-display').classList.add('hidden');
+                    fetchPhotos();
+                }
+            } else {
+                alert('업로드 오류: 수파베이스 버킷을 확인하세요.');
+            }
+            btn.innerText = "등록 완료";
+            btn.disabled = false;
+        }
+
+        // ==========================================
+        // [게임 엔진: "돌 피하기"]
         // ==========================================
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let gameInterval, score, playerX, playerSpeed = 5, raindrops = [], isPlaying = false;
+        let gameInterval, score, playerX, playerSpeed = 5.5, stones = [], isPlaying = false;
         let moveL = false, moveR = false;
 
         function startGame() {
             const name = document.getElementById('player-name').value.trim();
-            if(!name) return alert('이름이나 닉네임을 적어주셔야 기록 랭킹에 등록됩니다.');
+            if(!name) return alert('이름을 적어주셔야 명예의 전당 랭킹에 등록됩니다.');
             
             document.getElementById('game-start-screen').classList.add('opacity-0', 'pointer-events-none');
-            isPlaying = true; score = 0; playerX = canvas.width / 2 - 10; raindrops = [];
+            isPlaying = true; score = 0; playerX = canvas.width / 2 - 12; stones = [];
             
             if(gameInterval) clearInterval(gameInterval);
             gameInterval = setInterval(updateGameLoop, 20);
@@ -299,62 +367,77 @@
         function updateGameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // 키 및 가상 패드 터치 이동 가속 제어
             if (moveL && playerX > 0) playerX -= playerSpeed;
-            if (moveR && playerX < canvas.width - 20) playerX += playerSpeed;
+            if (moveR && playerX < canvas.width - 24) playerX += playerSpeed;
 
-            // 졸라맨 아바타 드로잉 (원형 머리 + 선 몸체)
-            ctx.fillStyle = '#10b981';
-            ctx.beginPath(); ctx.arc(playerX + 10, canvas.height - 30, 6, 0, Math.PI * 2); ctx.fill(); 
-            ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2.5;
-            ctx.beginPath(); ctx.moveTo(playerX + 10, canvas.height - 24); ctx.lineTo(playerX + 10, canvas.height - 10); ctx.stroke(); 
-            ctx.beginPath(); ctx.moveTo(playerX, canvas.height - 18); ctx.lineTo(playerX + 20, canvas.height - 18); ctx.stroke(); 
+            // 캐릭터 그리기 (UFO 비행선 형태)
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath(); ctx.arc(playerX + 12, canvas.height - 20, 10, 0, Math.PI, true); ctx.fill(); 
+            ctx.fillStyle = '#0ea5e9';
+            ctx.fillRect(playerX, canvas.height - 20, 24, 6); 
+            ctx.fillStyle = '#fbbf24'; 
+            ctx.beginPath(); ctx.arc(playerX + 12, canvas.height - 32, 3, 0, Math.PI * 2); ctx.fill();
 
-            // 하늘에서 비(똥) 생성 빈도 설정
+            // 돌맹이 생성
             if (Math.random() < 0.08) {
-                raindrops.push({ x: Math.random() * (canvas.width - 10), y: 0, size: 6 + Math.random() * 7, speed: 3.5 + Math.random() * 4.5 });
+                stones.push({ 
+                    x: Math.random() * (canvas.width - 20), 
+                    y: -20, 
+                    radius: 9 + Math.random() * 11, 
+                    speed: 3.5 + Math.random() * 4.5,
+                    jaggedSeed: Math.random() * 10
+                });
             }
 
-            // 장애물 처리 루프
-            for (let i = raindrops.length - 1; i >= 0; i--) {
-                raindrops[i].y += raindrops[i].speed;
+            for (let i = stones.length - 1; i >= 0; i--) {
+                stones[i].y += stones[i].speed;
                 
-                // 위험 물질(빨간 원) 드로잉
-                ctx.fillStyle = '#f43f5e';
-                ctx.beginPath(); ctx.arc(raindrops[i].x, raindrops[i].y, raindrops[i].size / 2, 0, Math.PI * 2); ctx.fill();
+                // 돌맹이 디자인 그리기
+                ctx.fillStyle = '#64748b'; 
+                ctx.beginPath();
+                const points = 8; 
+                for (let j = 0; j < points; j++) {
+                    const angle = (j / points) * Math.PI * 2;
+                    const offset = (j % 2 === 0 ? 3 : -2) * Math.sin(stones[i].jaggedSeed + j);
+                    const r = stones[i].radius + offset;
+                    const px = stones[i].x + Math.cos(angle) * r;
+                    const py = stones[i].y + Math.sin(angle) * r;
+                    if (j === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.closePath(); ctx.fill();
 
-                // 캐릭터 중심 충돌 범위 수학 계산
-                if (raindrops[i].y >= canvas.height - 35 && raindrops[i].y <= canvas.height - 10 && raindrops[i].x >= playerX - 5 && raindrops[i].x <= playerX + 25) {
+                ctx.fillStyle = '#475569';
+                ctx.beginPath(); ctx.arc(stones[i].x - 2, stones[i].y - 2, stones[i].radius * 0.4, 0, Math.PI * 2); ctx.fill();
+
+                // 충돌 검사
+                const distX = Math.abs(stones[i].x - (playerX + 12));
+                const distY = Math.abs(stones[i].y - (canvas.height - 20));
+                if (distX < (stones[i].radius + 10) && distY < (stones[i].radius + 8)) {
                     endGameRoutine();
                     return;
                 }
 
-                // 바닥 탈출 시 스코어 카운트업 및 청소
-                if (raindrops[i].y > canvas.height) { raindrops.splice(i, 1); score++; }
+                if (stones[i].y > canvas.height + 20) { stones.splice(i, 1); score++; }
             }
 
-            // 스코어 보드 텍스트 오버레이
-            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 13px sans-serif'; ctx.fillText(`SCORE: ${score}`, 12, 22);
+            ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 13px Courier New'; ctx.fillText(`SCORE: ${score.toString().padStart(4, '0')}`, 15, 25);
         }
 
         async function endGameRoutine() {
             isPlaying = false;
             clearInterval(gameInterval);
-            alert(`💥 으악! 비에 맞았습니다! \n나의 최종 스코어: ${score}점`);
+            alert(`🪨 거대한 돌에 정면 충돌했습니다! \n나의 기록: ${score}점`);
             
             const name = document.getElementById('player-name').value.trim();
-            // Supabase 랭킹 테이블로 실시간 전송
             await mySupabase.from('game_ranking').insert([{ player_name: name, score: score, created_at: new Date() }]);
             
             document.getElementById('game-start-screen').classList.remove('opacity-0', 'pointer-events-none');
             fetchRankings();
         }
 
-        // 모바일 조작 트리거 매핑 함수
         function moveLeft(bool) { moveL = bool; }
         function moveRight(bool) { moveR = bool; }
 
-        // 데스크탑 화살표 키 매핑 리스너
         document.addEventListener('keydown', (e) => {
             if(e.key === 'ArrowLeft') moveL = true;
             if(e.key === 'ArrowRight') moveR = true;
@@ -365,15 +448,12 @@
         });
 
         // ==========================================
-        // [실시간 리스너 및 초기화 파이프라인]
+        // [실시간 리스너 및 부팅 파이프라인]
         // ==========================================
-        
-        // Supabase Realtime 전 채널 동시 개방 및 연동
         mySupabase.channel('schema-db-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'family_status' }, () => { fetchFamilyStatus(); }).subscribe();
         mySupabase.channel('gallery-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'family_gallery' }, () => { fetchPhotos(); }).subscribe();
         mySupabase.channel('ranking-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'game_ranking' }, () => { fetchRankings(); }).subscribe();
 
-        // 초기 앱 구동 시 모든 세션 백엔드 로드 실행
         fetchFamilyStatus();
         fetchPhotos();
         fetchRankings();
