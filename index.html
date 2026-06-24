@@ -78,9 +78,10 @@
             <div class="relative overflow-hidden rounded-xl shadow-md border border-slate-200">
                 <canvas id="gameCanvas" width="320" height="240"></canvas>
                 
-                <div id="game-start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/85 transition-opacity duration-300">
-                    <input type="text" id="player-name" placeholder="닉네임 입력 (ex. 엄마, 아들)" class="mb-3 p-2 rounded-lg text-sm text-slate-800 text-center w-44 font-bold border-2 border-slate-300 focus:outline-none focus:border-indigo-500">
-                    <button onclick="startGame()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm shadow-md transform active:scale-95 transition-all">게임 시작 🚀</button>
+                <div id="game-start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-white/95 transition-opacity duration-300 p-4">
+                    <p class="text-xs font-bold text-indigo-600 mb-3 text-center">🏃‍♂️ 이름을 입력하고 게임을 시작해 주세요!</p>
+                    <input type="text" id="player-name" placeholder="여기에 이름 입력 (ex. 아빠)" class="mb-4 p-2.5 rounded-xl text-sm text-slate-900 bg-slate-50 text-center w-48 font-bold border-2 border-slate-200 focus:outline-none focus:border-indigo-500 shadow-sm">
+                    <button onclick="startGame()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-3 rounded-xl text-sm shadow-md transform active:scale-95 transition-all">게임 시작 🚀</button>
                 </div>
             </div>
 
@@ -229,7 +230,6 @@
             }
         }
 
-        // 변경 포인트: 가로 4장의 컴팩트한 바둑판형 타일 구조 렌더링
         function renderGallery() {
             const grid = document.getElementById('photo-grid');
             grid.innerHTML = '';
@@ -241,11 +241,9 @@
 
             photoData.forEach(photo => {
                 const item = document.createElement('div');
-                // aspect-square(정사각형) 유지, 클릭 시 확대 모달 실행 터치 영역 지정
                 item.className = "relative bg-slate-100 rounded-lg overflow-hidden shadow-sm aspect-square border border-slate-200 cursor-pointer hover:scale-95 transition-transform";
                 const fullImageUrl = mySupabase.storage.from('gallery').getPublicUrl(photo.url).data.publicUrl;
 
-                // 미니 사이즈 화면이므로 텍스트는 간결하게 그라데이션 위에 작성자 이름만 우선 표기
                 item.innerHTML = `
                     <img src="${fullImageUrl}" alt="가족일상" class="w-full h-full object-cover" onclick="openPhotoModal('${fullImageUrl}', '${photo.memo.replace(/'/g, "\\'")}', '${photo.uploader}')">
                     <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-1 pointer-events-none">
@@ -256,7 +254,6 @@
             });
         }
 
-        // 확대 팝업 제어 로직
         function openPhotoModal(url, memo, uploader) {
             document.getElementById('modal-img').src = url;
             document.getElementById('modal-memo').innerText = memo || '말머리 없음';
@@ -355,7 +352,12 @@
 
         function startGame() {
             const name = document.getElementById('player-name').value.trim();
-            if(!name) return alert('이름을 적어주셔야 명예의 전당 랭킹에 등록됩니다.');
+            
+            // [수정 포인트] 필수 이름 입력 검증 가드 문구 강화
+            if(!name) {
+                alert('이름을 입력하세요! 이름을 적어주셔야 명예의 전당 랭킹에 등록됩니다.');
+                return;
+            }
             
             document.getElementById('game-start-screen').classList.add('opacity-0', 'pointer-events-none');
             isPlaying = true; score = 0; playerX = canvas.width / 2 - 12; stones = [];
