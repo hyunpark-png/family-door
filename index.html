@@ -31,7 +31,6 @@
                 데이터를 불러오는 중...
             </div>
             <div id="family-list" class="space-y-4"></div>
-            <input type="file" id="profile-file-input" accept="image/*" class="hidden" onchange="uploadProfileImage(this)">
         </section>
 
         <hr class="border-slate-100">
@@ -45,7 +44,7 @@
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-3">
                 <div class="grid grid-cols-2 gap-2">
                     <input type="text" id="gallery-user" placeholder="올리는 사람 이름" class="p-2.5 border border-slate-300 rounded-lg bg-white font-medium focus:outline-none focus:border-indigo-500">
-                    <label class="flex items-center justify-center bg-white border border-slate-300 text-slate-700 font-bold py-2 px-3 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors text-center">
+                    <label class="flex items-center justify-center bg-white border border-slate-300 text-slate-700 font-bold py-2 px-3 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors text-center shadow-sm">
                         📁 사진 선택하기
                         <input type="file" id="gallery-file" accept="image/*" class="hidden" onchange="displayFileName(this)">
                     </label>
@@ -110,7 +109,6 @@
 
         let familyData = [];
         let photoData = [];
-        let currentTargetMemberId = null;
 
         // ==========================================
         // [데이터 동기화 및 패치 로직]
@@ -183,8 +181,6 @@
                     }
                 }
 
-                const profileImg = member.profile_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(member.name)}`;
-
                 const card = document.createElement('div');
                 card.className = `flex flex-col p-4 rounded-xl border transition-all ${
                     member.status === 'home' ? 'bg-emerald-50/40 border-emerald-200' : 
@@ -193,13 +189,7 @@
 
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2.5">
-                            <div class="relative group cursor-pointer" onclick="triggerProfileUpload(${member.id})">
-                                <img src="${profileImg}" alt="프로필" class="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 object-cover">
-                                <span class="absolute -bottom-1 -right-1 bg-slate-800 text-white text-[9px] px-1 py-0.5 rounded-md font-bold scale-90">⚙️ 변경</span>
-                            </div>
-                            <span class="font-bold text-lg text-slate-800">${member.name}</span>
-                        </div>
+                        <span class="font-bold text-lg text-slate-800">${member.name}</span>
                         <div class="flex gap-1 bg-slate-100 p-1 rounded-lg">
                             <button onclick="updateStatus(${member.id}, 'home')" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all ${member.status === 'home' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}">들어옴</button>
                             <button onclick="updateStatus(${member.id}, 'out')" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all ${member.status === 'out' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}">나감</button>
@@ -287,35 +277,6 @@
             await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
         }
 
-        function triggerProfileUpload(memberId) {
-            currentTargetMemberId = memberId;
-            document.getElementById('profile-file-input').click();
-        }
-
-        async function uploadProfileImage(input) {
-        if (!input.files || !input.files[0] || !currentTargetMemberId) return;
-            const file = input.files[0];
-            const fileExt = file.name.split('.').pop();
-            const fileName = `profile_${currentTargetMemberId}_${Date.now()}.${fileExt}`;
-
-            const { error: uploadError } = await mySupabase.storage.from('gallery').upload(fileName, file);
-            if (uploadError) return alert('이미지 업로드 실패: ' + uploadError.message);
-
-            const publicUrl = mySupabase.storage.from('gallery').getPublicUrl(fileName).data.publicUrl;
-            
-            // 실시간 반영 타이밍 보완 버그 수정
-            fetchFamilyStatus(); 
-
-            await mySupabase.from('family_status').update({ profile_url: publicUrl }).eq('id', currentTargetMemberId);
-            
-            input.value = '';
-            
-            // 0.5초 뒤에 서버 데이터를 한 번 더 확실하게 새로고침
-            setTimeout(() => {
-                fetchFamilyStatus();
-            }, 500);   
-        }
-
         async function uploadPhoto() {
             const uploader = document.getElementById('gallery-user').value.trim();
             const memo = document.getElementById('gallery-memo').value.trim();
@@ -344,7 +305,7 @@
                     fetchPhotos();
                 }
             } else {
-                alert('업로드 오류: 수파베이스 버킷을 확인하세요.');
+                alert('업로드 오류: 수파베이스 버킷 설정을 확인하세요.');
             }
             btn.innerText = "등록 완료";
             btn.disabled = false;
@@ -361,7 +322,6 @@
         function startGame() {
             const name = document.getElementById('player-name').value.trim();
             
-            // [수정 포인트] 필수 이름 입력 검증 가드 문구 강화
             if(!name) {
                 alert('이름을 입력하세요! 이름을 적어주셔야 명예의 전당 랭킹에 등록됩니다.');
                 return;
