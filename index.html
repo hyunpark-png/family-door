@@ -293,7 +293,7 @@
         }
 
         async function uploadProfileImage(input) {
-            if (!input.files || !input.files[0] || !currentTargetMemberId) return;
+        if (!input.files || !input.files[0] || !currentTargetMemberId) return;
             const file = input.files[0];
             const fileExt = file.name.split('.').pop();
             const fileName = `profile_${currentTargetMemberId}_${Date.now()}.${fileExt}`;
@@ -302,10 +302,18 @@
             if (uploadError) return alert('이미지 업로드 실패: ' + uploadError.message);
 
             const publicUrl = mySupabase.storage.from('gallery').getPublicUrl(fileName).data.publicUrl;
+            
+            // 실시간 반영 타이밍 보완 버그 수정
+            fetchFamilyStatus(); 
+
             await mySupabase.from('family_status').update({ profile_url: publicUrl }).eq('id', currentTargetMemberId);
             
             input.value = '';
-            fetchFamilyStatus();
+            
+            // 0.5초 뒤에 서버 데이터를 한 번 더 확실하게 새로고침
+            setTimeout(() => {
+                fetchFamilyStatus();
+            }, 500);   
         }
 
         async function uploadPhoto() {
