@@ -5,28 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>우리집 현관지기</title>
     
-    <link rel="apple-touch-icon" href="https://img.icons8.com/fluent/192/home.png">
-    <link rel="shortcut icon" href="https://img.icons8.com/fluent/192/home.png">
+    <link class="apple-touch-icon" href="https://img.icons8.com/fluent/192/home.png">
+    <link class="shortcut icon" href="https://img.icons8.com/fluent/192/home.png">
     
     <meta name="theme-color" content="#f8fafc">
     <meta name="apple-mobile-web-app-status-bar-style" content="#f8fafc">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* 게임 캔버스 스타일 */
+        canvas { background: #1e293b; display: block; margin: 0 auto; border-radius: 12px; }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col items-center p-4">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col items-center p-4 pb-12">
 
-    <main class="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 mt-4">
-        <header class="text-center mb-6 border-b border-slate-100 pb-4">
+    <main class="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 mt-4 space-y-8">
+        
+        <header class="text-center border-b border-slate-100 pb-4">
             <h1 class="text-2xl font-bold text-slate-950 flex justify-center items-center gap-2">🏠 우리집 현관지기</h1>
-            <p class="text-sm text-slate-500 mt-1">실시간 현관문 잠금 안내 서비스</p>
+            <p class="text-sm text-slate-500 mt-1">실시간 가족 아지트 & 현관문 관리</p>
         </header>
 
-        <div id="lock-warning" class="mb-6 p-4 rounded-xl text-center font-semibold transition-all duration-300">
-            데이터를 불러오는 중...
-        </div>
+        <section id="section-home">
+            <div id="lock-warning" class="mb-4 p-4 rounded-xl text-center font-semibold transition-all duration-300">
+                데이터를 불러오는 중...
+            </div>
+            <div id="family-list" class="space-y-4"></div>
+        </section>
 
-        <div id="family-list" class="space-y-4"></div>
+        <hr class="border-slate-100">
+
+        <section id="section-gallery" class="space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-1.5">📸 오늘의 데일리 사진첩</h2>
+                <span class="text-xs font-semibold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">최대 16장 한정</span>
+            </div>
+            
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
+                <div class="flex gap-2">
+                    <input type="text" id="gallery-user" placeholder="이름" class="w-1/3 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-slate-400">
+                    <input type="text" id="gallery-url" placeholder="이미지 주소 (https://...)" class="w-2/3 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-slate-400">
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="gallery-memo" placeholder="사진 코멘트나 하고 싶은 말 입력" class="w-full p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-slate-400">
+                    <button onclick="uploadPhoto()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 rounded-md shrink-0 transition-colors">등록</button>
+                </div>
+            </div>
+
+            <div id="photo-grid" class="grid grid-cols-2 gap-3">
+                </div>
+        </section>
+
+        <hr class="border-slate-100">
+
+        <section id="section-game" class="space-y-4">
+            <div class="border-b border-slate-100 pb-2">
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-1.5">🎮 우리집 미니 오락실</h2>
+                <p class="text-xs text-slate-500 mt-0.5">하늘에서 떨어지는 비(똥)를 피하세요! (졸라맨 게임)</p>
+            </div>
+
+            <div class="bg-slate-950 text-white p-3 rounded-xl shadow-inner">
+                <h3 class="text-xs font-bold text-amber-400 mb-2 text-center flex justify-center items-center gap-1">🏆 오늘의 실시간 TOP 3</h3>
+                <ol id="game-ranking" class="text-xs space-y-1.5 text-center font-medium">
+                    <li class="text-slate-500">랭킹 데이터를 불러오고 있습니다...</li>
+                </ol>
+            </div>
+
+            <div class="relative overflow-hidden rounded-xl shadow-md border border-slate-200">
+                <canvas id="gameCanvas" width="320" height="240"></canvas>
+                
+                <div id="game-start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/85 transition-opacity duration-300">
+                    <input type="text" id="player-name" placeholder="닉네임 입력 (ex. 아빠, 딸)" class="mb-3 p-2 rounded-lg text-sm text-slate-800 text-center w-44 font-bold border-2 border-slate-300 focus:outline-none focus:border-indigo-500">
+                    <button onclick="startGame()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm shadow-md transform active:scale-95 transition-all">게임 시작 🚀</button>
+                </div>
+            </div>
+
+            <div class="flex justify-center gap-6 pt-1">
+                <button onmousedown="moveLeft(true)" onmouseup="moveLeft(false)" ontouchstart="moveLeft(true)" ontouchend="moveLeft(false)" class="w-20 py-3.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 font-bold rounded-xl text-xl select-none shadow-sm border border-slate-200 text-slate-700">◀</button>
+                <button onmousedown="moveRight(true)" onmouseup="moveRight(false)" ontouchstart="moveRight(true)" ontouchend="moveRight(false)" class="w-20 py-3.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 font-bold rounded-xl text-xl select-none shadow-sm border border-slate-200 text-slate-700">▶</button>
+            </div>
+        </section>
+
     </main>
 
     <script>
@@ -36,8 +96,13 @@
         const mySupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let familyData = [];
+        let photoData = [];
 
-        // 서버에서 데이터 가져오기
+        // ==========================================
+        // [백엔드 통신 및 데이터 로드 로직]
+        // ==========================================
+        
+        // 1. 가족 출입 데이터 가져오기
         async function fetchFamilyStatus() {
             const { data, error } = await mySupabase.from('family_status').select('*').order('id');
             if (!error && data) {
@@ -46,7 +111,51 @@
             }
         }
 
-        // 화면 그리기 및 로직
+        // 2. 오늘의 사진첩 데이터 가져오기 (매일 리셋 필터 포함)
+        async function fetchPhotos() {
+            const todayStr = new Date().toISOString().split('T')[0]; // 오늘 날짜 문자열 추출
+            const { data, error } = await mySupabase
+                .from('family_gallery')
+                .select('*')
+                .gte('created_at', todayStr + 'T00:00:00') // 오늘 00시 이후 데이터만
+                .order('id', { ascending: false })
+                .limit(16); // 기획안 준수: 하루 선착순 16장 제한
+
+            if (!error && data) {
+                photoData = data;
+                renderGallery();
+            }
+        }
+
+        // 3. 미니게임 실시간 TOP 3 랭킹 가져오기
+        async function fetchRankings() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const { data, error } = await mySupabase
+                .from('game_ranking')
+                .select('*')
+                .gte('created_at', todayStr + 'T00:00:00') // 당일 생성된 점수 기록만 필터링
+                .order('score', { ascending: false })
+                .limit(3);
+
+            if (!error && data) {
+                const rankingList = document.getElementById('game-ranking');
+                rankingList.innerHTML = '';
+                if(data.length === 0) {
+                    rankingList.innerHTML = `<li class="text-slate-500 py-1">오늘의 첫 기록을 남겨보세요!</li>`;
+                    return;
+                }
+                data.forEach((rank, index) => {
+                    const medals = ['🥇', '🥈', '🥉'];
+                    rankingList.innerHTML += `<li class="text-slate-300">${medals[index]} <span class="font-bold text-white">${rank.player_name}</span> : <span class="text-emerald-400 font-bold">${rank.score}점</span></li>`;
+                });
+            }
+        }
+
+        // ==========================================
+        // [UI 렌더링 함수들]
+        // ==========================================
+        
+        // 가족 목록 화면 그리기 (원본 코드 구조 계승 및 프로필 이미지 추가)
         function renderApplication() {
             const listContainer = document.getElementById('family-list');
             listContainer.innerHTML = '';
@@ -66,6 +175,9 @@
                     }
                 }
 
+                // 이름 기반 귀여운 자동 아바타 API 연동 (프로필 이미지 요구사항 충족)
+                const profileImg = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(member.name)}`;
+
                 const card = document.createElement('div');
                 card.className = `flex flex-col p-4 rounded-xl border transition-all ${
                     member.status === 'home' ? 'bg-emerald-50/40 border-emerald-200' : 
@@ -74,7 +186,10 @@
 
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-lg text-slate-800">${member.name}</span>
+                        <div class="flex items-center gap-2.5">
+                            <img src="${profileImg}" alt="프로필" class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 object-cover">
+                            <span class="font-bold text-lg text-slate-800">${member.name}</span>
+                        </div>
                         <div class="flex gap-1 bg-slate-100 p-1 rounded-lg">
                             <button onclick="updateStatus(${member.id}, 'home')" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all ${member.status === 'home' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}">들어옴</button>
                             <button onclick="updateStatus(${member.id}, 'out')" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all ${member.status === 'out' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}">나감</button>
@@ -105,33 +220,163 @@
             }
         }
 
-        // 상태 업데이트
+        // 사진첩 화면 그리기
+        function renderGallery() {
+            const grid = document.getElementById('photo-grid');
+            grid.innerHTML = '';
+
+            if(photoData.length === 0) {
+                grid.innerHTML = `<p class="col-span-2 text-center text-xs text-slate-400 py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">오늘 업로드된 사진이 없습니다.<br>첫 일상을 공유해보세요!</p>`;
+                return;
+            }
+
+            photoData.forEach(photo => {
+                const item = document.createElement('div');
+                item.className = "relative bg-slate-100 rounded-xl overflow-hidden shadow-sm aspect-square border border-slate-200";
+                item.innerHTML = `
+                    <img src="${photo.url}" alt="가족일상" class="w-full h-full object-cover">
+                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-2 text-white">
+                        <p class="text-[11px] font-bold truncate">${photo.memo || '일상 공유'}</p>
+                        <p class="text-[9px] text-slate-300 mt-0.5 font-medium">👤 ${photo.uploader}</p>
+                    </div>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        // ==========================================
+        // [C.U.D 데이터 가공 및 액션 제어]
+        // ==========================================
+
+        // 출입 상태 업데이트 (원본 기능)
         async function updateStatus(id, newStatus) {
             await mySupabase.from('family_status').update({ status: newStatus, created_at: new Date() }).eq('id', id);
         }
 
-        // 메모 업데이트
+        // 한줄 메모 업데이트 (원본 기능)
         async function updateMemo(id, newMemo) {
             await mySupabase.from('family_status').update({ memo: newMemo }).eq('id', id);
         }
 
-        // 실시간 연동 마스터 수신 채널
-        mySupabase.channel('schema-db-changes')
-        .on(
-            'postgres_changes',
-            {
-                event: '*',
-                schema: 'public',
-                table: 'family_status'
-            },
-            (payload) => {
-                fetchFamilyStatus();
-            }
-        )
-        .subscribe();
+        // 데일리 사진 한마디 등록 액션
+        async function uploadPhoto() {
+            const uploader = document.getElementById('gallery-user').value.trim();
+            const url = document.getElementById('gallery-url').value.trim();
+            const memo = document.getElementById('gallery-memo').value.trim();
 
-        // 앱 시작 시 데이터 로드
+            if (!uploader || !url) return alert('작성자 이름과 이미지 링크를 꼭 입력해주세요.');
+            if (photoData.length >= 16) return alert('기획 한도 초과: 오늘은 이미 16장의 사진이 다 찼습니다! 내일 다시 공유해주세요.');
+
+            const { error } = await mySupabase.from('family_gallery').insert([{ uploader, url, memo, created_at: new Date() }]);
+            if(!error) {
+                document.getElementById('gallery-url').value = '';
+                document.getElementById('gallery-memo').value = '';
+                fetchPhotos();
+            } else {
+                alert('DB 테이블 생성을 확인해주세요.');
+            }
+        }
+
+        // ==========================================
+        // [미니게임 엔진: HTML5 Canvas 기반]
+        // ==========================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameInterval, score, playerX, playerSpeed = 5, raindrops = [], isPlaying = false;
+        let moveL = false, moveR = false;
+
+        function startGame() {
+            const name = document.getElementById('player-name').value.trim();
+            if(!name) return alert('이름이나 닉네임을 적어주셔야 기록 랭킹에 등록됩니다.');
+            
+            document.getElementById('game-start-screen').classList.add('opacity-0', 'pointer-events-none');
+            isPlaying = true; score = 0; playerX = canvas.width / 2 - 10; raindrops = [];
+            
+            if(gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(updateGameLoop, 20);
+        }
+
+        function updateGameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 키 및 가상 패드 터치 이동 가속 제어
+            if (moveL && playerX > 0) playerX -= playerSpeed;
+            if (moveR && playerX < canvas.width - 20) playerX += playerSpeed;
+
+            // 졸라맨 아바타 드로잉 (원형 머리 + 선 몸체)
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath(); ctx.arc(playerX + 10, canvas.height - 30, 6, 0, Math.PI * 2); ctx.fill(); 
+            ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.moveTo(playerX + 10, canvas.height - 24); ctx.lineTo(playerX + 10, canvas.height - 10); ctx.stroke(); 
+            ctx.beginPath(); ctx.moveTo(playerX, canvas.height - 18); ctx.lineTo(playerX + 20, canvas.height - 18); ctx.stroke(); 
+
+            // 하늘에서 비(똥) 생성 빈도 설정
+            if (Math.random() < 0.08) {
+                raindrops.push({ x: Math.random() * (canvas.width - 10), y: 0, size: 6 + Math.random() * 7, speed: 3.5 + Math.random() * 4.5 });
+            }
+
+            // 장애물 처리 루프
+            for (let i = raindrops.length - 1; i >= 0; i--) {
+                raindrops[i].y += raindrops[i].speed;
+                
+                // 위험 물질(빨간 원) 드로잉
+                ctx.fillStyle = '#f43f5e';
+                ctx.beginPath(); ctx.arc(raindrops[i].x, raindrops[i].y, raindrops[i].size / 2, 0, Math.PI * 2); ctx.fill();
+
+                // 캐릭터 중심 충돌 범위 수학 계산
+                if (raindrops[i].y >= canvas.height - 35 && raindrops[i].y <= canvas.height - 10 && raindrops[i].x >= playerX - 5 && raindrops[i].x <= playerX + 25) {
+                    endGameRoutine();
+                    return;
+                }
+
+                // 바닥 탈출 시 스코어 카운트업 및 청소
+                if (raindrops[i].y > canvas.height) { raindrops.splice(i, 1); score++; }
+            }
+
+            // 스코어 보드 텍스트 오버레이
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 13px sans-serif'; ctx.fillText(`SCORE: ${score}`, 12, 22);
+        }
+
+        async function endGameRoutine() {
+            isPlaying = false;
+            clearInterval(gameInterval);
+            alert(`💥 으악! 비에 맞았습니다! \n나의 최종 스코어: ${score}점`);
+            
+            const name = document.getElementById('player-name').value.trim();
+            // Supabase 랭킹 테이블로 실시간 전송
+            await mySupabase.from('game_ranking').insert([{ player_name: name, score: score, created_at: new Date() }]);
+            
+            document.getElementById('game-start-screen').classList.remove('opacity-0', 'pointer-events-none');
+            fetchRankings();
+        }
+
+        // 모바일 조작 트리거 매핑 함수
+        function moveLeft(bool) { moveL = bool; }
+        function moveRight(bool) { moveR = bool; }
+
+        // 데스크탑 화살표 키 매핑 리스너
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowLeft') moveL = true;
+            if(e.key === 'ArrowRight') moveR = true;
+        });
+        document.addEventListener('keyup', (e) => {
+            if(e.key === 'ArrowLeft') moveL = false;
+            if(e.key === 'ArrowRight') moveR = false;
+        });
+
+        // ==========================================
+        // [실시간 리스너 및 초기화 파이프라인]
+        // ==========================================
+        
+        // Supabase Realtime 전 채널 동시 개방 및 연동
+        mySupabase.channel('schema-db-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'family_status' }, () => { fetchFamilyStatus(); }).subscribe();
+        mySupabase.channel('gallery-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'family_gallery' }, () => { fetchPhotos(); }).subscribe();
+        mySupabase.channel('ranking-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'game_ranking' }, () => { fetchRankings(); }).subscribe();
+
+        // 초기 앱 구동 시 모든 세션 백엔드 로드 실행
         fetchFamilyStatus();
+        fetchPhotos();
+        fetchRankings();
     </script>
 </body>
 </html>
